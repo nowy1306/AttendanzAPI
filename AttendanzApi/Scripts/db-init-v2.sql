@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS students(
 	firstname VARCHAR(256) NOT NULL,
 	lastname VARCHAR(256) NOT NULL,
 	index_number VARCHAR(8) NOT NULL,
+	student_card_code VARCHAR(16) NOT NULL,
 	PRIMARY KEY (id)
 );
 
@@ -45,7 +46,6 @@ CREATE TABLE IF NOT EXISTS group_students(
 	id BIGINT AUTO_INCREMENT,
 	group_id BIGINT NOT NULL,
 	student_id BIGINT NOT NULL,
-	student_card_code VARCHAR(16) NOT NULL,
 	PRIMARY KEY (id),
 	FOREIGN KEY (group_id) REFERENCES _groups(id),
 	FOREIGN KEY (student_id) REFERENCES students(id)
@@ -90,3 +90,8 @@ CREATE TABLE IF NOT EXISTS control_processes(
 );
 
 INSERT INTO accounts(login, password, card_code) VALUES("demo", "demo", "demo");
+INSERT INTO subjects(name, code, semester_type, semester) VALUES("Matematyka", "ID1729", "zimowy", 1);
+INSERT INTO subjects(name, code, semester_type, semester) VALUES("Informatyka", "ID1738", "zimowy", 1);
+INSERT INTO students(firstname, lastname, index_number, student_card_code) VALUES("Jan", "Kowalski", "299264", "33333333");
+INSERT INTO students(firstname, lastname, index_number, student_card_code) VALUES("Piotr", "Nowak", "299234", "11111111");
+INSERT INTO students(firstname, lastname, index_number, student_card_code) VALUES("Anna", "Zaradna", "299288", "22222222");

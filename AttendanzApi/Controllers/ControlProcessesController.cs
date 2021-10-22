@@ -103,7 +103,7 @@ namespace AttendanzApi.Controllers
             return Ok();
         }
 
-        [HttpGet]
+        [HttpPut]
         [Route("/control-processes")]
         public IActionResult GetForScanner([FromQuery] string cardCode, [FromQuery] string scannerKey)
         {
@@ -166,7 +166,7 @@ namespace AttendanzApi.Controllers
 
             var classModel = _classes.GetById(
                 classId, 
-                p => p.Group.GroupStudents.Where(student => student.StudentCardCode == studentCardCode), 
+                p => p.Group.GroupStudents.Where(groupStudent => groupStudent.Student.StudentCardCode == studentCardCode), 
                 p => p.Presences, 
                 p => p.ControlProcess);
 

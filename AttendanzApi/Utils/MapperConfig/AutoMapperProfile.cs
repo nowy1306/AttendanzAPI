@@ -36,7 +36,7 @@ namespace AttendanzApi.Utils.MapperConfig
                 .ReverseMap()
                 .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToString("dd.MM.yyyy")));
 
-            CreateMap<GroupStudentModel, GroupStudentDto>()
+            CreateMap<GroupStudentModel, StudentDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Student.Id))
                 .ForMember(dest => dest.Firstname, opt => opt.MapFrom(src => src.Student.Firstname))
                 .ForMember(dest => dest.Lastname, opt => opt.MapFrom(src => src.Student.LastName))
@@ -61,7 +61,7 @@ namespace AttendanzApi.Utils.MapperConfig
             CreateMap<PresenceModel, StudentPresenceDto>();
 
             CreateMap<PresenceModel, ClassPresenceDto>()
-                .ForMember(dest => dest.Student, opt => opt.MapFrom(src => src.GroupStudent.Student));
+                .ForMember(dest => dest.Student, opt => opt.MapFrom(src => src.GroupStudent));
 
             CreateMap<ControlProcessDto, ControlProcessModel>()
                 //.ForMember(dest => dest.ScannerId, opt => opt.Ignore())

@@ -21,9 +21,6 @@ namespace AttendanzApi.Models
         [Column("student_id")]
         public long StudentId { get; set; }
 
-        [Column("student_card_code")]
-        public string StudentCardCode { get; set; }
-
         public GroupModel Group { get; set; }
         public StudentModel Student { get; set; }
         public List<PresenceModel> Presences { get; set; }

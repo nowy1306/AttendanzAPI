@@ -24,6 +24,9 @@ namespace AttendanzApi.Models
         [Column("index_number")]
         public string IndexNumber { get; set; }
 
+        [Column("student_card_code")]
+        public string StudentCardCode { get; set; }
+
         public List<GroupStudentModel> GroupStudents { get; set; }
     }
 }

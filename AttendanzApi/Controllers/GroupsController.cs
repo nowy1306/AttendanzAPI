@@ -134,16 +134,16 @@ namespace AttendanzApi.Controllers
                 .Select(groupStudent => _groupStudents.GetById(groupStudent.Id, p => p.Student));
 
             var dtos = groupStudents
-                .Select(student => _mapper.Map(student, new GroupStudentDto()));
+                .Select(groupStudent => _mapper.Map(groupStudent, new StudentDto()));
 
             return Ok(dtos);
         }
 
         [HttpPut]
         [Route("{groupId}/students/{studentId}")]
-        public IActionResult AddStudentToGroup(long groupId, long studentId, [FromBody] GroupStudentDto dto)
+        public IActionResult AddStudentToGroup(long groupId, long studentId)
         {
-            var group = _groups.GetById(groupId, p => p.GroupStudents);
+            var group = _groups.GetById(groupId, p => p.GroupStudents, p => p.Classes);
             if (group == null)
                 return NotFound();
 
@@ -160,11 +160,17 @@ namespace AttendanzApi.Controllers
             {
                 GroupId = groupId,
                 StudentId = studentId,
-                StudentCardCode = dto.StudentCardCode
             };
+            var presences = group.Classes.Select(classModel => new PresenceModel()
+            {
+                Status = "absent",
+                Class = classModel
+            });
+            groupStudent.Presences = Enumerable.ToList(presences);
+
             _groupStudents.Insert(groupStudent);
 
-            return Ok(_mapper.Map(groupStudent, new GroupStudentDto()));
+            return Ok(_mapper.Map(groupStudent, new StudentDto()));
         }
 
         [HttpDelete]

@@ -9,7 +9,7 @@ namespace AttendanzApi.Dtos
     public class ClassDto
     {
         public long Id { get; set; }
-        public DateTime Date { get; set; }
+        public string Date { get; set; }
         public string Note { get; set; }
     }
 }
