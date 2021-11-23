@@ -49,6 +49,7 @@ namespace AttendanzApi.Controllers
                 return Unauthorized();
 
             HttpContext.Session.SetLong(SessionKeys.AccountId, account.Id);
+            HttpContext.Session.SetString(SessionKeys.AccountCardCode, account.CardCode);
             return Ok();
         }
 

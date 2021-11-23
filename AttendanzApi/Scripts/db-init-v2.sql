@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS group_students(
 	group_id BIGINT NOT NULL,
 	student_id BIGINT NOT NULL,
 	PRIMARY KEY (id),
-	FOREIGN KEY (group_id) REFERENCES _groups(id),
+	FOREIGN KEY (group_id) REFERENCES _groups(id) ON DELETE CASCADE,
 	FOREIGN KEY (student_id) REFERENCES students(id)
 );
 
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS classes(
 	date DATETIME NOT NULL,
 	note VARCHAR(256),
 	PRIMARY KEY (id),
-	FOREIGN KEY (group_id) REFERENCES _groups(id)
+	FOREIGN KEY (group_id) REFERENCES _groups(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS presences(
@@ -66,8 +66,8 @@ CREATE TABLE IF NOT EXISTS presences(
 	class_id BIGINT NOT NULL,
 	status VARCHAR(16) NOT NULL,
 	PRIMARY KEY (id),
-	FOREIGN KEY (group_student_id) REFERENCES group_students(id),
-	FOREIGN KEY (class_id) REFERENCES classes(id)
+	FOREIGN KEY (group_student_id) REFERENCES group_students(id) ON DELETE CASCADE,
+	FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS scanners(

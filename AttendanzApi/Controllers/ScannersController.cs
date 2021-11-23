@@ -10,6 +10,7 @@ using AttendanzApi.Interfaces;
 using AttendanzApi.Models;
 using AttendanzApi.Dtos;
 using AttendanzApi.Utils.Generators;
+using IronBarCode;
 
 namespace AttendanzApi.Controllers
 {
@@ -40,6 +41,22 @@ namespace AttendanzApi.Controllers
             return Ok(dtos);
         }
 
+        [HttpGet]
+        [Route("{id}/barcode")]
+        public IActionResult GetBarcode(long id)
+        {
+            var scanner = _scanners.GetById(id);
+            if (scanner == null)
+                return NotFound();
+
+            var barcode = BarcodeWriter.CreateBarcode(scanner.Key, BarcodeWriterEncoding.Code128)
+                .ResizeTo(200, 100)
+                .AddBarcodeValueTextBelowBarcode();
+            var data = barcode.ToPngBinaryData();
+
+            return File(data, "image/png");
+        }
+
         [HttpPost]
         public IActionResult Post([FromBody] ScannerDto dto)
         {
@@ -50,7 +67,7 @@ namespace AttendanzApi.Controllers
             return Ok(_mapper.Map(scanner, new ScannerDto()));
         }
 
-        [HttpPatch]
+        [HttpPut]
         [Route("{id}")]
         public IActionResult Patch(long id, [FromBody] ScannerDto dto)
         {

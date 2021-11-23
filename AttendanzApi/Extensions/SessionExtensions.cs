@@ -24,6 +24,7 @@ namespace AttendanzApi.Extensions
     public static class SessionKeys
     {
         public static readonly string AccountId = "AccountId";
+        public static readonly string AccountCardCode = "AccountCardCode";
     }
 
 }

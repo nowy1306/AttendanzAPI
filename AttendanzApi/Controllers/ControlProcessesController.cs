@@ -9,6 +9,8 @@ using AttendanzApi.Dtos;
 using AttendanzApi.Interfaces;
 using AttendanzApi.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
+using AttendanzApi.Hubs;
 
 namespace AttendanzApi.Controllers
 {
@@ -22,6 +24,7 @@ namespace AttendanzApi.Controllers
         private readonly IRepository<ScannerModel> _scanners;
         private readonly IRepository<AccountModel> _accounts;
         private readonly IRepository<ClassModel> _classes;
+        private readonly IHubContext<ControllProcessHub> _hubContext;
 
         public ControlProcessesController(
             ILogger<ControlProcessesController> logger,
@@ -30,7 +33,8 @@ namespace AttendanzApi.Controllers
             IRepository<ScannerModel> scanners,
             IRepository<AccountModel> accounts,
             IRepository<GroupModel> groups,
-            IRepository<ClassModel> classes)
+            IRepository<ClassModel> classes,
+            IHubContext<ControllProcessHub> hubContext)
         {
             _logger = logger;
             _mapper = mapper;
@@ -39,6 +43,7 @@ namespace AttendanzApi.Controllers
             _accounts = accounts;
             _groups = groups;
             _classes = classes;
+            _hubContext = hubContext;
 
         }
 
@@ -119,8 +124,13 @@ namespace AttendanzApi.Controllers
                 return NotFound();
 
             var process = GetControlProcess(account.Id);
+            if (process == null)
+                return NotFound();
             process.Scanner = scanner;
             _processes.Update(process);
+
+            SendScannerInfo(account.CardCode, scanner.Description);
+
 
             return Ok(new ControlProcessInfoDto()
             {
@@ -168,7 +178,8 @@ namespace AttendanzApi.Controllers
                 classId, 
                 p => p.Group.GroupStudents.Where(groupStudent => groupStudent.Student.StudentCardCode == studentCardCode), 
                 p => p.Presences, 
-                p => p.ControlProcess);
+                p => p.ControlProcess,
+                p => p.Group.Account);
 
             var groupStudent = classModel.Group.GroupStudents.FirstOrDefault();
             if (classModel == null || classModel.GroupId != groupId || groupStudent == null || classModel.ControlProcess == null)
@@ -188,6 +199,8 @@ namespace AttendanzApi.Controllers
             presence.Status = classModel.ControlProcess.ControlMode == "presence" ? "present" : "late";
             _classes.Update(classModel);
 
+            SendStudentPresence(classModel.Group.Account.CardCode, presence.Id, presence.Status);
+
             return Ok(_mapper.Map(classModel, new ClassDto()));
         }
 
@@ -203,6 +216,18 @@ namespace AttendanzApi.Controllers
             
         }
 
-        
+        private void SendScannerInfo(string cardCode, string scannerDescription)
+        {
+            _hubContext.Clients.Client(ConnectionStorage.GetConnectionId(cardCode))
+                .SendAsync("ReceiveScannerInfo", scannerDescription);
+        }
+
+        private void SendStudentPresence(string cardCode, long presenceId, string presenceStatus)
+        {
+            _hubContext.Clients.Client(ConnectionStorage.GetConnectionId(cardCode))
+                .SendAsync("ReceiveStudentPresence", presenceId, presenceStatus);
+        }
+
+
     }
 }

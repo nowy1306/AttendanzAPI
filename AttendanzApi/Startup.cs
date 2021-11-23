@@ -19,6 +19,7 @@ using AttendanzApi.Repository;
 using AttendanzApi.Utils.MapperConfig;
 using Microsoft.OpenApi.Any;
 using AttendanzApi.Converters;
+using AttendanzApi.Hubs;
 
 namespace AttendanzApi
 {
@@ -47,7 +48,7 @@ namespace AttendanzApi
                     builder =>
                     {
                         builder
-                        .WithOrigins("http://localhost:3000")
+                        .WithOrigins("http://localhost:3000", "http://192.168.100.4")
                         .AllowCredentials()
                         .AllowAnyHeader()
                         .AllowAnyMethod();
@@ -57,6 +58,7 @@ namespace AttendanzApi
             services.AddControllers()
                 .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new TimeSpanConverter())); ;
             services.AddAutoMapper(typeof(AutoMapperProfile));
+            services.AddSignalR();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddSwaggerGen(c =>
             {
@@ -102,6 +104,7 @@ namespace AttendanzApi
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ControllProcessHub>("/control-process/notifications");
             });
         }
     }
