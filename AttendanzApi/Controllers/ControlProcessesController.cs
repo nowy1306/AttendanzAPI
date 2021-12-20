@@ -11,6 +11,7 @@ using AttendanzApi.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using AttendanzApi.Hubs;
+using AttendanzApi.Extensions;
 
 namespace AttendanzApi.Controllers
 {
@@ -51,19 +52,27 @@ namespace AttendanzApi.Controllers
         [Route("account/groups/{groupId}/classes/{classId}/control-process")]
         public IActionResult Post(long groupId, long classId, [FromBody] ControlProcessDto dto)
         {
-            var group = _groups
-                .GetById(groupId, p => p.Classes.Where(classModel => classModel.Id == classId));
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
 
-            if (group == null || group.Classes.DefaultIfEmpty() == null)
+            var classModel = _classes.FirstOrDefault(
+                classModel =>
+                    classModel.Id == classId &&
+                    classModel.GroupId == groupId &&
+                    classModel.Group.AccountId == accountId,
+                p => p.Group
+            );
+
+            if (classModel == null)
                 return NotFound();
 
-            var account = _accounts.GetById(1);
-            var process = GetControlProcess(account.Id);
+            var process = GetControlProcess((long) accountId);
             if (process != null)
                 return Conflict();
 
             process = _mapper.Map(dto, new ControlProcessModel());
-            process.Class = group.Classes.First();
+            process.Class = classModel;
             
             _processes.Insert(process);
 
@@ -76,18 +85,23 @@ namespace AttendanzApi.Controllers
         [Route("account/groups/{groupId}/classes/{classId}/control-process")]
         public IActionResult Patch(long groupId, long classId, [FromBody] ControlProcessDto dto)
         {
-            var group = _groups
-                .GetById(groupId, p => p.Classes.Where(classModel => classModel.Id == classId));
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
 
-            if (group == null || group.Classes.DefaultIfEmpty() == null)
+            var classModel = _classes.FirstOrDefault(
+                classModel =>
+                    classModel.Id == classId &&
+                    classModel.GroupId == groupId &&
+                    classModel.Group.AccountId == accountId,
+                p => p.Group,
+                p => p.ControlProcess
+            );
+
+            if (classModel == null || classModel.ControlProcess == null)
                 return NotFound();
 
-            var account = _accounts.GetById(1);
-            var process = GetControlProcess(account.Id);
-            if (process == null || process.ClassId != classId)
-                return NotFound();
-
-            process = group.Classes.First().ControlProcess;
+            var process = classModel.ControlProcess;
             _mapper.Map(dto, process);
 
             _processes.Update(process);
@@ -99,8 +113,20 @@ namespace AttendanzApi.Controllers
         [Route("account/groups/{groupId}/classes/{classId}/control-process")]
         public IActionResult Delete(long groupId, long classId)
         {
-            var classModel = _classes.GetById(classId, p => p.Group, p => p.ControlProcess);
-            if (classModel == null || classModel.GroupId != groupId || classModel.ControlProcess == null)
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
+            var classModel = _classes.FirstOrDefault(
+                classModel =>
+                    classModel.Id == classId &&
+                    classModel.GroupId == groupId &&
+                    classModel.Group.AccountId == accountId,
+                p => p.Group,
+                p => p.ControlProcess
+            );
+
+            if (classModel == null || classModel.ControlProcess == null)
                 return NotFound();
 
             _processes.Delete(classModel.ControlProcess);
@@ -116,8 +142,12 @@ namespace AttendanzApi.Controllers
                 return UnprocessableEntity();
 
             var scanner = _scanners.FirstOrDefault(scanner => scanner.Key == scannerKey);
+
             if (scanner == null)
                 return NotFound();
+
+            if (scanner.IsBlocked)
+                return Unauthorized();
 
             var account = _accounts.FirstOrDefault(account => account.CardCode == cardCode, p => p.Groups);
             if (account == null)
@@ -146,7 +176,11 @@ namespace AttendanzApi.Controllers
         [Route("account/control-process")]
         public IActionResult GetForAccount()
         {
-            var account = _accounts.GetById(1, p => p.Groups);
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
+            var account = _accounts.GetById((long)accountId, p => p.Groups);
             if (account == null)
                 return NotFound();
 
@@ -186,6 +220,10 @@ namespace AttendanzApi.Controllers
                 return NotFound();
 
             var scanner = _processes.GetById(classModel.ControlProcess.Id, p => p.Scanner).Scanner;
+
+            if (scanner.IsBlocked)
+                return Unauthorized();
+
             if (scanner == null)
                 return NotFound();
 

@@ -9,6 +9,7 @@ using AttendanzApi.Interfaces;
 using AttendanzApi.Models;
 using AttendanzApi.Dtos;
 using AutoMapper;
+using AttendanzApi.Extensions;
 
 namespace AttendanzApi.Controllers
 {
@@ -40,10 +41,17 @@ namespace AttendanzApi.Controllers
         [Route("{groupId}/students/{studentId}/presences")]
         public IActionResult GetStudentPresences(long groupId, long studentId)
         {
-            var groupStudent = _groupStudents.FirstOrDefault
-            (
-                (student => student.StudentId == studentId && student.GroupId == groupId), 
-                p => p.Presences
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
+            var groupStudent = _groupStudents.FirstOrDefault(
+                student => 
+                    student.StudentId == studentId && 
+                    student.GroupId == groupId && 
+                    student.Group.AccountId == accountId, 
+                p => p.Presences,
+                p => p.Group
             );
 
             if (groupStudent == null)
@@ -62,10 +70,17 @@ namespace AttendanzApi.Controllers
         [Route("{groupId}/classes/{classId}/presences")]
         public IActionResult GetClassPresences(long groupId, long classId)
         {
-            var classModel = _classes.FirstOrDefault
-            (
-                (classModel => classModel.Id == classId && classModel.GroupId == groupId),
-                p => p.Presences
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
+            var classModel = _classes.FirstOrDefault(
+                classModel => 
+                    classModel.Id == classId && 
+                    classModel.GroupId == groupId &&
+                    classModel.Group.AccountId == accountId,
+                p => p.Presences,
+                p => p.Group
             );
 
             if (classModel == null)
@@ -88,19 +103,26 @@ namespace AttendanzApi.Controllers
             long presenceId, 
             [FromBody] PresenceDto dto)
         {
-            var presence = _presences.GetById(presenceId, p => p.GroupStudent, p => p.Class);
+
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
+            var presence = _presences.FirstOrDefault(
+                presence =>
+                    presence.Id == presenceId &&
+                    presence.GroupStudent.StudentId == studentId &&
+                    presence.GroupStudent.GroupId == groupId &&
+                    presence.GroupStudent.Group.AccountId == accountId,
+                p => p.GroupStudent,
+                p => p.GroupStudent.Group
+            );
+
             if (presence == null)
                 return NotFound();
 
-            if (presence.GroupStudent.StudentId != studentId || presence.GroupStudent.GroupId != groupId)
-                return NotFound();
-
-            _logger.LogInformation(presence.GroupStudent.Id.ToString());
-            _logger.LogInformation(presence.GroupStudentId.ToString());
             //_mapper.Map(dto, presence);
             presence.Status = dto.Status;
-            _logger.LogInformation(presence.GroupStudent.Id.ToString());
-            _logger.LogInformation(presence.GroupStudentId.ToString());
             _presences.Update(presence);
 
             return Ok(_mapper.Map(presence, new StudentPresenceDto()));
@@ -114,19 +136,25 @@ namespace AttendanzApi.Controllers
             long presenceId,
             [FromBody] PresenceDto dto)
         {
-            var presence = _presences.GetById(presenceId, p => p.GroupStudent.Student, p => p.Class);
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
+            var presence = _presences.FirstOrDefault(
+                presence =>
+                    presence.Id == presenceId &&
+                    presence.Class.Id == classId &&
+                    presence.Class.GroupId == groupId &&
+                    presence.Class.Group.AccountId == accountId,
+                p => p.Class,
+                p => p.Class.Group
+            );
+
             if (presence == null)
                 return NotFound();
 
-            if (presence.ClassId != classId || presence.GroupStudent.GroupId != groupId)
-                return NotFound();
-
-            _logger.LogInformation(presence.GroupStudent.Id.ToString());
-            _logger.LogInformation(presence.GroupStudentId.ToString());
             //_mapper.Map(dto, presence);
             presence.Status = dto.Status;
-            _logger.LogInformation(presence.GroupStudent.Id.ToString());
-            _logger.LogInformation(presence.GroupStudentId.ToString());
             _presences.Update(presence);
 
             return Ok(_mapper.Map(presence, new ClassPresenceDto()));

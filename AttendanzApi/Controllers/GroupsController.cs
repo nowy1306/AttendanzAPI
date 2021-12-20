@@ -8,6 +8,7 @@ using AttendanzApi.Dtos;
 using AttendanzApi.Models;
 using AttendanzApi.Interfaces;
 using AutoMapper;
+using AttendanzApi.Extensions;
 
 namespace AttendanzApi.Controllers
 {
@@ -18,6 +19,7 @@ namespace AttendanzApi.Controllers
 
         private readonly ILogger<GroupsController> _logger;
         private readonly IMapper _mapper;
+        private readonly IRepository<AccountModel> _accounts;
         private readonly IRepository<GroupModel> _groups;
         private readonly IRepository<SubjectModel> _subjects;
         private readonly IRepository<StudentModel> _students;
@@ -26,6 +28,7 @@ namespace AttendanzApi.Controllers
         public GroupsController(
             ILogger<GroupsController> logger,
             IMapper mapper,
+            IRepository<AccountModel> accounts,
             IRepository<GroupModel> groups,
             IRepository<SubjectModel> subjects,
             IRepository<StudentModel> students,
@@ -33,6 +36,7 @@ namespace AttendanzApi.Controllers
         {
             _logger = logger;
             _mapper = mapper;
+            _accounts = accounts;
             _groups = groups;
             _subjects = subjects;
             _students = students;
@@ -44,7 +48,11 @@ namespace AttendanzApi.Controllers
         public IActionResult Get(long id)
         {
             var group = _groups.GetById(id);
-            if (group == null)
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
+            if (group?.AccountId != accountId)
                 return NotFound();
 
             var dto = _mapper.Map(group, new GroupDto());
@@ -56,8 +64,15 @@ namespace AttendanzApi.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var groups = _groups.GetAll();
-            var dtos = groups.Select(group => _mapper.Map(group, new GroupDto()));
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
+            var account = _accounts.GetById((long)accountId, p => p.Groups);
+            if (account == null)
+                return NotFound();
+
+            var dtos = account.Groups.Select(group => _mapper.Map(group, new GroupDto()));
 
             return Ok(dtos);
         }
@@ -65,14 +80,16 @@ namespace AttendanzApi.Controllers
         [HttpPost]
         public IActionResult Post([FromBody] GroupDto dto)
         {
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
             var subject = _subjects.GetById(dto.SubjectId);
             if (subject == null)
                 return NotFound();
 
-            _logger.LogInformation(dto.StartTime.ToString());
-            var group = _mapper.Map(dto, new GroupModel() { AccountId = 1});
+            var group = _mapper.Map(dto, new GroupModel() { AccountId = (long)accountId});
             _groups.Insert(group);
-            _logger.LogInformation(group.StartTime.ToString());
 
             return Ok(_mapper.Map(group, new GroupDto()));
         }
@@ -81,15 +98,18 @@ namespace AttendanzApi.Controllers
         [Route("{id}")]
         public IActionResult Put(long id, [FromBody] GroupDto dto)
         {
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
             var group = _groups.GetById(id);
-            if (group == null)
+            if (group?.AccountId != accountId)
                 return NotFound();
 
             var subject = _subjects.GetById(dto.SubjectId);
             if (subject == null)
                 return NotFound();
             
-
             _mapper.Map(dto, group);
             _groups.Update(group);
 
@@ -100,8 +120,12 @@ namespace AttendanzApi.Controllers
         [Route("{id}")]
         public IActionResult Delete(long id)
         {
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
             var group = _groups.GetById(id);
-            if (group == null)
+            if (group?.AccountId != accountId)
                 return NotFound();
 
             _groups.Delete(group);
@@ -113,8 +137,12 @@ namespace AttendanzApi.Controllers
         [Route("{id}/subject")]
         public IActionResult GetSubject(long id)
         {
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
             var group = _groups.GetById(id, p => p.Subject);
-            if (group == null)
+            if (group?.AccountId != accountId)
                 return NotFound();
 
             var subject = _mapper.Map(group.Subject, new SubjectDto());
@@ -126,8 +154,12 @@ namespace AttendanzApi.Controllers
         [Route("{id}/students")]
         public IActionResult GetStudents(long id)
         {
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
             var group = _groups.GetById(id, p => p.GroupStudents);
-            if (group == null)
+            if (group?.AccountId != accountId)
                 return NotFound();
 
             var groupStudents = group.GroupStudents
@@ -143,8 +175,12 @@ namespace AttendanzApi.Controllers
         [Route("{groupId}/students/{studentId}")]
         public IActionResult AddStudentToGroup(long groupId, long studentId)
         {
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
             var group = _groups.GetById(groupId, p => p.GroupStudents, p => p.Classes);
-            if (group == null)
+            if (group?.AccountId != accountId)
                 return NotFound();
 
             var student = _students.GetById(studentId);
@@ -177,8 +213,12 @@ namespace AttendanzApi.Controllers
         [Route("{groupId}/students/{studentId}")]
         public IActionResult DeleteStudentFromGroup(long groupId, long studentId)
         {
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
             var group = _groups.GetById(groupId, p => p.GroupStudents);
-            if (group == null)
+            if (group?.AccountId != accountId)
                 return NotFound();
 
             var student = _students.GetById(studentId);

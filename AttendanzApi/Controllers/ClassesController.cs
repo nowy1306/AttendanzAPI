@@ -9,6 +9,7 @@ using AttendanzApi.Models;
 using AttendanzApi.Interfaces;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
+using AttendanzApi.Extensions;
 
 namespace AttendanzApi.Controllers
 {
@@ -37,11 +38,18 @@ namespace AttendanzApi.Controllers
         [Route("{groupId}/classes/{classId}")]
         public IActionResult Get(long groupId, long classId)
         {
-            var classModel = _classes.GetById(classId);
-            if (classModel == null)
-                return NotFound();
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
 
-            if (classModel.GroupId != groupId)
+            var classModel = _classes.FirstOrDefault(
+                classModel => 
+                    classModel.Id == classId && 
+                    classModel.GroupId == groupId && 
+                    classModel.Group.AccountId == accountId,
+                p => p.Group);
+
+            if (classModel == null)
                 return NotFound();
 
             var dto = _mapper.Map(classModel, new ClassDto());
@@ -53,7 +61,16 @@ namespace AttendanzApi.Controllers
         [Route("{groupId}/classes")]
         public IActionResult GetAll(long groupId)
         {
-            var group = _groups.GetById(groupId, p => p.Classes);
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
+            var group = _groups.FirstOrDefault(
+                group => 
+                    group.Id == groupId && 
+                    group.AccountId == accountId, 
+                p => p.Classes);
+
             if (group == null)
                 return NotFound();
 
@@ -66,6 +83,14 @@ namespace AttendanzApi.Controllers
         [Route("{groupId}/classes")]
         public IActionResult Post(long groupId, [FromBody] ClassDto dto)
         {
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
+
+            var group = _groups.GetById(groupId);
+            if (group?.AccountId != accountId)
+                return NotFound();
+
             var classModel = _mapper.Map(dto, new ClassModel());
             classModel.GroupId = groupId;
             classModel.Date = DateTime.Now;
@@ -89,11 +114,18 @@ namespace AttendanzApi.Controllers
         [Route("{groupId}/classes/{classId}")]
         public IActionResult Put(long groupId, long classId, [FromBody] ClassDto dto)
         {
-            var classModel = _classes.GetById(classId);
-            if (classModel == null)
-                return NotFound();
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
 
-            if (classModel.GroupId != groupId)
+            var classModel = _classes.FirstOrDefault(
+                classModel =>
+                    classModel.Id == classId &&
+                    classModel.GroupId == groupId &&
+                    classModel.Group.AccountId == accountId,
+                p => p.Group);
+
+            if (classModel == null)
                 return NotFound();
 
             _mapper.Map(dto, classModel);
@@ -106,11 +138,18 @@ namespace AttendanzApi.Controllers
         [Route("{groupId}/classes/{classId}")]
         public IActionResult Delete(long groupId, long classId)
         {
-            var classModel = _classes.GetById(classId);
-            if (classModel == null)
-                return NotFound();
+            var accountId = HttpContext.Session.GetLong(SessionKeys.AccountId);
+            if (accountId == null)
+                return Unauthorized();
 
-            if (classModel.GroupId != groupId)
+            var classModel = _classes.FirstOrDefault(
+                classModel =>
+                    classModel.Id == classId &&
+                    classModel.GroupId == groupId &&
+                    classModel.Group.AccountId == accountId,
+                p => p.Group);
+
+            if (classModel == null)
                 return NotFound();
 
             _classes.Delete(classModel);
