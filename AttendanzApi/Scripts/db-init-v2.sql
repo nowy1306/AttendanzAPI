@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS accounts(
 	login VARCHAR(64) NOT NULL,
 	password VARCHAR(64) NOT NULL,
 	card_code VARCHAR(16) NOT NULL,
+	is_admin TINYINT(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (id)
 );
 
@@ -90,6 +91,7 @@ CREATE TABLE IF NOT EXISTS control_processes(
 );
 
 INSERT INTO accounts(login, password, card_code) VALUES("demo", "demo", "demo");
+INSERT INTO accounts(login, password, card_code, is_admin) VALUES("admin", "admin", "admin", 1);
 INSERT INTO subjects(name, code, semester_type, semester) VALUES("Matematyka", "ID1729", "zimowy", 1);
 INSERT INTO subjects(name, code, semester_type, semester) VALUES("Informatyka", "ID1738", "zimowy", 1);
 INSERT INTO students(firstname, lastname, index_number, student_card_code) VALUES("Jan", "Kowalski", "299264", "33333333");

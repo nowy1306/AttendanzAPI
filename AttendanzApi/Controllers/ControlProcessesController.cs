@@ -144,7 +144,7 @@ namespace AttendanzApi.Controllers
             var scanner = _scanners.FirstOrDefault(scanner => scanner.Key == scannerKey);
 
             if (scanner == null)
-                return NotFound();
+                return Unauthorized();
 
             if (scanner.IsBlocked)
                 return Unauthorized();
@@ -165,9 +165,7 @@ namespace AttendanzApi.Controllers
             return Ok(new ControlProcessInfoDto()
             {
                 ClassId = process.ClassId,
-                GroupId = process.Class.GroupId,
-                ScannerId = scanner.Id,
-                ControlMode = process.ControlMode
+                GroupId = process.Class.GroupId
             }) ;
 
         }

@@ -24,6 +24,9 @@ namespace AttendanzApi.Models
         [Column("card_code")]
         public string CardCode { get; set; }
 
+        [Column("is_admin")]
+        public bool IsAdmin { get; set; }
+
         public List<GroupModel> Groups { get; set; }
     }
 }

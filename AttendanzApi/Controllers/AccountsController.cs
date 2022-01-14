@@ -39,7 +39,7 @@ namespace AttendanzApi.Controllers
 
         [HttpPost]
         [Route("session")]
-        public IActionResult Login([FromBody] LoginDto dto)
+        public IActionResult Login([FromBody] LoginRequestDto dto)
         {
             var account = _accounts.FirstOrDefault(account => account.Login == dto.Login);
             if (account == null)
@@ -50,7 +50,13 @@ namespace AttendanzApi.Controllers
 
             HttpContext.Session.SetLong(SessionKeys.AccountId, account.Id);
             HttpContext.Session.SetString(SessionKeys.AccountCardCode, account.CardCode);
-            return Ok();
+            HttpContext.Session.SetBool(SessionKeys.IsAdmin, account.IsAdmin);
+
+            var resp = new LoginResponseDto()
+            {
+                IsAdmin = account.IsAdmin
+            };
+            return Ok(resp);
         }
 
         [HttpGet]

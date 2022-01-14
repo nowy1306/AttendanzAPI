@@ -11,6 +11,7 @@ using AttendanzApi.Models;
 using AttendanzApi.Dtos;
 using AttendanzApi.Utils.Generators;
 using IronBarCode;
+using AttendanzApi.Extensions;
 
 namespace AttendanzApi.Controllers
 {
@@ -35,6 +36,9 @@ namespace AttendanzApi.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
+            if (!HttpContext.Session.GetBool(SessionKeys.IsAdmin))
+                return Unauthorized();
+
             var scanners = _scanners.GetAll();
             var dtos = scanners.Select(scanner => _mapper.Map(scanner, new ScannerDto()));
 
@@ -45,6 +49,9 @@ namespace AttendanzApi.Controllers
         [Route("{id}/barcode")]
         public IActionResult GetBarcode(long id)
         {
+            if (!HttpContext.Session.GetBool(SessionKeys.IsAdmin))
+                return Unauthorized();
+
             var scanner = _scanners.GetById(id);
             if (scanner == null)
                 return NotFound();
@@ -54,12 +61,16 @@ namespace AttendanzApi.Controllers
                 .AddBarcodeValueTextBelowBarcode();
             var data = barcode.ToPngBinaryData();
 
+            Response.Headers.Add("Content-Disposition", "attachment");
             return File(data, "image/png");
         }
 
         [HttpPost]
         public IActionResult Post([FromBody] ScannerDto dto)
         {
+            if (!HttpContext.Session.GetBool(SessionKeys.IsAdmin))
+                return Unauthorized();
+
             var scanner = _mapper.Map(dto, new ScannerModel());
             scanner.Key = KeyGenerator.Get128BytesCode();
             _scanners.Insert(scanner);
@@ -71,6 +82,9 @@ namespace AttendanzApi.Controllers
         [Route("{id}")]
         public IActionResult Patch(long id, [FromBody] ScannerDto dto)
         {
+            if (!HttpContext.Session.GetBool(SessionKeys.IsAdmin))
+                return Unauthorized();
+
             var scanner = _scanners.GetById(id);
             if (scanner == null)
                 return NotFound();
@@ -85,6 +99,9 @@ namespace AttendanzApi.Controllers
         [Route("{id}")]
         public IActionResult Delete(long id)
         {
+            if (!HttpContext.Session.GetBool(SessionKeys.IsAdmin))
+                return Unauthorized();
+
             var scanner = _scanners.GetById(id);
             if (scanner == null)
                 return NotFound();
@@ -98,6 +115,9 @@ namespace AttendanzApi.Controllers
         [Route("{key}/confirmation")]
         public IActionResult Confirm(string key)
         {
+            if (!HttpContext.Session.GetBool(SessionKeys.IsAdmin))
+                return Unauthorized();
+
             var scanner = _scanners.FirstOrDefault(scanner => scanner.Key == key);
             if (scanner == null)
                 return NotFound();

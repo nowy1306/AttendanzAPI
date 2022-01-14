@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 
 namespace AttendanzApi.Dtos
 {
-    public class LoginDto
+    public class LoginResponseDto
     {
-        public string Login { get; set; }
-        public string Password { get; set; }
+        public bool IsAdmin { get; set; }
     }
 }

@@ -20,6 +20,7 @@ using AttendanzApi.Utils.MapperConfig;
 using Microsoft.OpenApi.Any;
 using AttendanzApi.Converters;
 using AttendanzApi.Hubs;
+using System.Text.Json.Serialization;
 
 namespace AttendanzApi
 {
@@ -48,7 +49,7 @@ namespace AttendanzApi
                     builder =>
                     {
                         builder
-                        .WithOrigins("http://localhost:3000", "http://192.168.100.4")
+                        .WithOrigins("http://localhost:3000")
                         .AllowCredentials()
                         .AllowAnyHeader()
                         .AllowAnyMethod();
@@ -56,7 +57,11 @@ namespace AttendanzApi
             });
 
             services.AddControllers()
-                .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new TimeSpanConverter())); ;
+                .AddJsonOptions(options => 
+                { 
+                    options.JsonSerializerOptions.Converters.Add(new TimeSpanConverter()); 
+                    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                });
             services.AddAutoMapper(typeof(AutoMapperProfile));
             services.AddSignalR();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
