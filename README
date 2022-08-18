@@ -9,4 +9,4 @@ Cechy projektu:
 
 Zastrzeżenia do projektu:
 1. Pominięto ważny aspekt walidacji danych w DTO.
-2. Skorzystano ze wzorca generycznego repoytorium (generic repository pattern). Warto byłoby skorzystać z wzorca dedykowanych warstw serwisowych (service layer pattern), który wprowadza dodatkową warstwę ułatwiającą testowanie kodu i zmniejszającą złożoność Controllerów.
+2. Skorzystano ze wzorca generycznego repozytorium (generic repository pattern). Warto byłoby skorzystać z wzorca dedykowanych warstw serwisowych (service layer pattern), który wprowadza dodatkową warstwę ułatwiającą testowanie kodu i zmniejszającą złożoność Controllerów.
