@@ -1,0 +1,12 @@
+AttendanzAPI - część serwerowa systemu do kontroli obecności na zajęciach w oparciu o kod kreskowy na legitymacji studenckiej.
+Projekt został wykonany w ramach pracy inżynierskiej, która polegała na stworzeniu systemu składającego się z oprogramowania serwerowego (API), aplikacji stanowiącej warstwę prezentacji danych i logiki aplikacji oraz oprogramowania na urządzenie Arduino wyposażone w skaner kodów kreskowych.
+Głównym założeniem projektu było stworzenie systemu, który pozwoli na integracje innym zewnętrznym systemom.
+Cechy projektu:
+1. Wykonany w języku C# w technologii ASP.NET Core.
+2. Do komunikacji z serwerem zostały zdefiniowane obiekty transferu danych (DTO).
+3. W procesie mapowania DTO na klase modelowe został wykorzystany AutoMapper.
+4. Proces kontroli obecności na zajęciach opierał się na wzajemnej komunikacji aplikacji interfejsu użytkownika z urządzeniem skanującym. Pośrednikiem w komunikacji był serwer, który przetwarzał komunikaty i wysyłał do klientów za pośrednictwem protokołu WebSocket. W tym celu skorzystano z SignalR. 
+
+Zastrzeżenia do projektu:
+1. Pominięto ważny aspekt walidacji danych w DTO.
+2. Skorzystano ze wzorca generycznego repoytorium (generic repository pattern). Warto byłoby skorzystać z wzorca dedykowanych warstw serwisowych (service layer pattern), który wprowadza dodatkową warstwę ułatwiającą testowanie kodu i zmniejszającą złożoność Controllerów.
