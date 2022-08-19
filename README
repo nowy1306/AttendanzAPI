@@ -4,8 +4,9 @@ Głównym założeniem projektu było stworzenie systemu, który pozwoli na inte
 Cechy projektu:
 1. Wykonany w języku C# w technologii ASP.NET Core.
 2. Do komunikacji z serwerem zostały zdefiniowane obiekty transferu danych (DTO).
-3. W procesie mapowania DTO na klase modelowe został wykorzystany AutoMapper.
-4. Proces kontroli obecności na zajęciach opierał się na wzajemnej komunikacji aplikacji interfejsu użytkownika z urządzeniem skanującym. Pośrednikiem w komunikacji był serwer, który przetwarzał komunikaty i wysyłał do klientów za pośrednictwem protokołu WebSocket. W tym celu skorzystano z SignalR. 
+3. Zastosowano technikę mapowania obiektowo-relacyjnego (ORM) z wykorzystaniem Entity Framework Core.
+4. W procesie mapowania DTO na klasy modelowe został wykorzystany AutoMapper.
+5. Proces kontroli obecności na zajęciach opierał się na wzajemnej komunikacji aplikacji interfejsu użytkownika z urządzeniem skanującym. Pośrednikiem w komunikacji był serwer, który przetwarzał komunikaty i wysyłał do klientów za pośrednictwem protokołu WebSocket. W tym celu skorzystano z SignalR. 
 
 Zastrzeżenia do projektu:
 1. Pominięto ważny aspekt walidacji danych w DTO.
