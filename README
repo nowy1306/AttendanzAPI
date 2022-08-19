@@ -1,5 +1,5 @@
 AttendanzAPI - część serwerowa systemu do kontroli obecności na zajęciach w oparciu o kod kreskowy na legitymacji studenckiej.
-Projekt został wykonany w ramach pracy inżynierskiej, która polegała na stworzeniu systemu składającego się z oprogramowania serwerowego (API), aplikacji stanowiącej warstwę prezentacji danych i logiki aplikacji oraz oprogramowania na urządzenie Arduino wyposażone w skaner kodów kreskowych.
+Projekt został wykonany w ramach pracy inżynierskiej, która polegała na stworzeniu systemu składającego się z oprogramowania serwerowego (API), aplikacji stanowiącej warstwę prezentacji danych i logiki aplikacji oraz oprogramowania na urządzenie Arduino, które zostało wyposażone w skaner kodów kreskowych.
 Głównym założeniem projektu było stworzenie systemu, który pozwoli na integracje innym zewnętrznym systemom.
 Cechy projektu:
 1. Wykonany w języku C# w technologii ASP.NET Core.
